@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mondal Kirana Store - Online Order</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif; background: #f5f5f5; color: #222; }
+  .header { background: #1a7a3c; color: #fff; padding: 16px; text-align: center; position: sticky; top: 0; z-index: 10; }
+  .header h1 { font-size: 20px; }
+  .header p { font-size: 13px; opacity: .9; margin-top: 2px; }
+  .container { max-width: 520px; margin: 0 auto; padding: 12px 12px 120px; }
+  .card { background: #fff; border-radius: 12px; padding: 12px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.08); display: flex; align-items: center; gap: 12px; }
+  .card .info { flex: 1; }
+  .card .name { font-weight: 600; font-size: 15px; }
+  .card .meta { font-size: 12px; color: #666; margin-top: 2px; }
+  .card .price { font-weight: 700; color: #1a7a3c; font-size: 16px; margin-top: 4px; }
+  .stepper { display: flex; align-items: center; gap: 10px; }
+  .stepper button { width: 34px; height: 34px; border-radius: 50%; border: 1px solid #1a7a3c; background: #fff; color: #1a7a3c; font-size: 20px; font-weight: 700; cursor: pointer; }
+  .stepper button:active { background: #1a7a3c; color: #fff; }
+  .stepper .qty { font-size: 16px; font-weight: 700; min-width: 24px; text-align: center; }
+  .addbtn { background: #1a7a3c; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .section-title { font-size: 17px; font-weight: 700; margin: 16px 4px 8px; }
+  .form-card { background: #fff; border-radius: 12px; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .form-card label { display: block; font-size: 13px; font-weight: 600; margin: 10px 0 4px; }
+  .form-card input, .form-card textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; }
+  .toggle { display: flex; gap: 8px; margin-top: 4px; }
+  .toggle button { flex: 1; padding: 10px; border: 1px solid #1a7a3c; background: #fff; color: #1a7a3c; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .toggle button.active { background: #1a7a3c; color: #fff; }
+  .cartbar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #ddd; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 -2px 8px rgba(0,0,0,.08); }
+  .cartbar .total { font-size: 16px; font-weight: 700; }
+  .cartbar .total small { display: block; font-size: 11px; color: #666; font-weight: 400; }
+  .orderbtn { background: #e8720c; color: #fff; border: none; border-radius: 10px; padding: 12px 28px; font-size: 16px; font-weight: 700; cursor: pointer; }
+  .orderbtn:disabled { background: #ccc; cursor: not-allowed; }
+  .empty { text-align: center; padding: 40px 20px; color: #666; }
+  .empty .big { font-size: 18px; font-weight: 600; color: #333; margin-bottom: 8px; }
+  .retrybtn { margin-top: 14px; background: #1a7a3c; color: #fff; border: none; border-radius: 8px; padding: 10px 24px; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .success { text-align: center; padding: 40px 20px; }
+  .success .tick { font-size: 56px; }
+  .success h2 { color: #1a7a3c; margin: 12px 0; }
+  .success .summary { background: #fff; border-radius: 12px; padding: 14px; text-align: left; margin-top: 16px; }
+  .err { color: #c00; font-size: 13px; margin-top: 4px; }
+  .loading { text-align: center; padding: 40px; color: #666; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🏪 Mondal Kirana Store</h1>
+  <p>ऑनलाइन ऑर्डर करें • Order Online</p>
+</div>
+
+<div class="container" id="main-view">
+  <div class="section-title">🛒 Samaan / Products</div>
+  <div id="menu-list"><div class="loading">Menu load ho raha hai...</div></div>
+
+  <div class="section-title">📝 Aapki Details / Your Details</div>
+  <div class="form-card">
+    <label>Naam / Name *</label>
+    <input id="f-name" type="text" placeholder="Apna naam likhein">
+    <label>Mobile Number *</label>
+    <input id="f-phone" type="tel" maxlength="10" inputmode="numeric" placeholder="10-digit mobile number">
+    <div class="err hidden" id="phone-err">Sahi 10-digit mobile number daalein</div>
+    <label>Order Type</label>
+    <div class="toggle">
+      <button id="t-pickup" class="active" onclick="setType('pickup')">🏃 Pickup (Dukaan se le jayein)</button>
+      <button id="t-delivery" onclick="setType('delivery')">🛵 Delivery (Ghar par)</button>
+    </div>
+    <div id="addr-wrap" class="hidden">
+      <label>Address *</label>
+      <textarea id="f-addr" rows="2" placeholder="Ghar ka pura address likhein"></textarea>
+    </div>
+  </div>
+</div>
+
+<div class="container hidden" id="success-view">
+  <div class="success">
+    <div class="tick">✅</div>
+    <h2>Order mil gaya!<br>ऑर्डर मिल गया!</h2>
+    <p>Dukaan wala jald hi taiyaar karega.</p>
+    <div class="summary" id="order-summary"></div>
+    <button class="retrybtn" onclick="location.reload()">Naya Order Karein</button>
+  </div>
+</div>
+
+<div class="cartbar" id="cartbar">
+  <div class="total"><small id="cart-count">0 items</small><span id="cart-total">₹0</span></div>
+  <button class="orderbtn" id="order-btn" onclick="placeOrder()">Order Karo</button>
+</div>
+
+<script>
+var SUPABASE_URL = "https://occgmonedohrkljmksj.supabase.co";
+var ANON_KEY = "sb_publishable_k83Z2TiB7KAmmd0PjYxsDg_R_swP5z2";
+var cart = {}; // product_id -> {item, qty}
+var orderType = "pickup";
+
+function headers() {
+  return { "apikey": ANON_KEY, "Authorization": "Bearer " + ANON_KEY, "Content-Type": "application/json" };
+}
+
+function setType(t) {
+  orderType = t;
+  document.getElementById("t-pickup").classList.toggle("active", t === "pickup");
+  document.getElementById("t-delivery").classList.toggle("active", t === "delivery");
+  document.getElementById("addr-wrap").classList.toggle("hidden", t === "pickup");
+}
+
+async function loadMenu() {
+  var list = document.getElementById("menu-list");
+  try {
+    var r = await fetch(SUPABASE_URL + "/rest/v1/shop_menu?select=*&order=name.asc", { headers: headers() });
+    if (!r.ok) throw new Error("load failed");
+    var items = await r.json();
+    if (!items || !items.length) { showEmpty(); return; }
+    list.innerHTML = "";
+    items.forEach(function(it) {
+      var d = document.createElement("div");
+      d.className = "card";
+      d.innerHTML =
+        '<div class="info"><div class="name">' + esc(it.name) + '</div>' +
+        '<div class="meta">' + esc(it.pack_size || it.unit || "") + '</div>' +
+        '<div class="price">₹' + Number(it.price).toFixed(0) + '</div></div>' +
+        '<div class="stepper" id="step-' + it.product_id + '">' +
+        '<button class="addbtn" onclick="addItem(\'' + it.product_id + '\')">Add</button></div>';
+      d._item = it;
+      list.appendChild(d);
+      if (cart[it.product_id]) renderStepper(it.product_id);
+    });
+  } catch (e) { showEmpty(); }
+}
+
+function showEmpty() {
+  document.getElementById("menu-list").innerHTML =
+    '<div class="empty"><div class="big">Dukaan ka menu abhi taiyaar ho raha hai</div>' +
+    '<div>Thodi der baad phir try karein</div>' +
+    '<button class="retrybtn" onclick="loadMenu()">Retry</button></div>';
+}
+
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
+
+function addItem(pid) {
+  var card = null;
+  document.querySelectorAll("#menu-list .card").forEach(function(c){ if (c._item && c._item.product_id === pid) card = c; });
+  if (!card) return;
+  cart[pid] = { item: card._item, qty: (cart[pid] ? cart[pid].qty : 0) + 1 };
+  renderStepper(pid); updateCart();
+}
+function chQty(pid, d) {
+  if (!cart[pid]) return;
+  cart[pid].qty += d;
+  if (cart[pid].qty <= 0) delete cart[pid];
+  renderStepper(pid); updateCart();
+}
+function renderStepper(pid) {
+  var el = document.getElementById("step-" + pid);
+  if (!el) return;
+  var q = cart[pid] ? cart[pid].qty : 0;
+  if (q === 0) {
+    el.innerHTML = '<button class="addbtn" onclick="addItem(\'' + pid + '\')">Add</button>';
+  } else {
+    el.innerHTML = '<button onclick="chQty(\'' + pid + '\',-1)">−</button>' +
+      '<span class="qty">' + q + '</span>' +
+      '<button onclick="chQty(\'' + pid + '\',1)">+</button>';
+  }
+}
+function updateCart() {
+  var n = 0, total = 0;
+  Object.keys(cart).forEach(function(pid){ n += cart[pid].qty; total += cart[pid].qty * Number(cart[pid].item.price); });
+  document.getElementById("cart-count").textContent = n + " items";
+  document.getElementById("cart-total").textContent = "₹" + total.toFixed(0);
+  document.getElementById("order-btn").disabled = (n === 0);
+}
+
+async function placeOrder() {
+  var name = document.getElementById("f-name").value.trim();
+  var phone = document.getElementById("f-phone").value.trim();
+  var addr = document.getElementById("f-addr").value.trim();
+  var perr = document.getElementById("phone-err");
+  if (!name) { alert("Apna naam likhein / Please enter your name"); return; }
+  if (!/^[6-9]\d{9}$/.test(phone)) { perr.classList.remove("hidden"); return; }
+  perr.classList.add("hidden");
+  if (orderType === "delivery" && !addr) { alert("Delivery ke liye address likhein / Please enter address"); return; }
+  var pids = Object.keys(cart);
+  if (!pids.length) { alert("Pehle kuch samaan select karein"); return; }
+  var items = [], subtotal = 0;
+  pids.forEach(function(pid){
+    var c = cart[pid];
+    items.push({ product_id: pid, name: c.item.name, price: Number(c.item.price), qty: c.qty, unit: c.item.unit || "" });
+    subtotal += c.qty * Number(c.item.price);
+  });
+  var btn = document.getElementById("order-btn");
+  btn.disabled = true; btn.textContent = "Bheja ja raha hai...";
+  try {
+    var r = await fetch(SUPABASE_URL + "/rest/v1/online_orders", {
+      method: "POST", headers: headers(),
+      body: JSON.stringify({ customer_name: name, customer_phone: phone, customer_address: addr || "", order_type: orderType, items: items, subtotal: subtotal, status: "new" })
+    });
+    if (!r.ok) throw new Error("order failed");
+    var html = "<b>Naam:</b> " + esc(name) + "<br><b>Mobile:</b> " + esc(phone) +
+      "<br><b>Type:</b> " + (orderType === "pickup" ? "Pickup" : "Delivery") + "<br><br>";
+    items.forEach(function(it){ html += esc(it.name) + " × " + it.qty + " — ₹" + (it.price * it.qty).toFixed(0) + "<br>"; });
+    html += "<br><b>Total: ₹" + subtotal.toFixed(0) + "</b>";
+    document.getElementById("order-summary").innerHTML = html;
+    document.getElementById("main-view").classList.add("hidden");
+    document.getElementById("cartbar").classList.add("hidden");
+    document.getElementById("success-view").classList.remove("hidden");
+    window.scrollTo(0, 0);
+  } catch (e) {
+    alert("Order nahi bheja ja saka. Internet check karke phir try karein.");
+    btn.disabled = false; btn.textContent = "Order Karo";
+  }
+}
+
+document.getElementById("f-phone").addEventListener("input", function(e){
+  e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);
+});
+loadMenu(); updateCart();
+</script>
+</body>
+</html>
