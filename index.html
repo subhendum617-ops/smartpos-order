@@ -465,12 +465,11 @@ async function placeOrder(){
   try{
     var r=await fetch(SUPABASE_URL+"/rest/v1/online_orders",{
       method:"POST",
-      headers:headers({"Prefer":"return=representation"}),
+      headers:headers(),
       body:JSON.stringify({customer_name:name,customer_phone:phone,customer_address:addr||"",order_type:dtype,items:items,subtotal:grand,status:"new"})
     });
     if(!r.ok)throw new Error("order failed");
-    var data=await r.json();
-    var oid=(data&&data[0]&&data[0].id)?String(data[0].id).slice(0,8).toUpperCase():"------";
+    var oid="OD"+Date.now().toString(36).toUpperCase();
     document.getElementById("oid-chip").textContent="#"+oid;
     cart={};updateBadges();
     showView("success");
